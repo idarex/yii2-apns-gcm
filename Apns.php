@@ -8,7 +8,6 @@ namespace bryglen\apnsgcm;
 
 use Yii;
 use yii\base\Application;
-use yii\base\Component;
 use yii\base\InvalidConfigException;
 
 /**
@@ -50,18 +49,21 @@ class Apns extends AbstractApnsGcm
         if (!in_array($this->environment, [self::ENVIRONMENT_SANDBOX, self::ENVIRONMENT_PRODUCTION])) {
             throw new InvalidConfigException('Environment is invalid.');
         }
-        if (!$this->pemFile || !file_exists($this->pemFile)) {
-            throw new InvalidConfigException('Invalid Pem file');
-        }
 
-        Yii::$app->on(
-            Application::EVENT_AFTER_REQUEST,
-            function ($event) {
-                if ($this->getClient()) {
-                    $this->getClient()->disconnect();
-                }
+        if (!$this->dryRun) {
+            if (!$this->pemFile || !file_exists($this->pemFile)) {
+                throw new InvalidConfigException('Invalid Pem file');
             }
-        );
+
+            Yii::$app->on(
+                Application::EVENT_AFTER_REQUEST,
+                function ($event) {
+                    if ($this->getClient()) {
+                        $this->getClient()->disconnect();
+                    }
+                }
+            );
+        }
     }
 
     public function closeConnection()
